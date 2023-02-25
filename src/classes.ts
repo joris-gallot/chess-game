@@ -79,6 +79,14 @@ export class Chess {
     this.initBoard();
   }
 
+  public getPosition(position: BoardPosition) {
+    return this.board[SIZE - position.y][position.x - 1];
+  }
+
+  public setPosition(position: BoardPosition, value: SquareSymbol) {
+    return (this.board[SIZE - position.y][position.x - 1] = value);
+  }
+
   private initBoard() {
     this.initPlayer(this.whitePlayer);
     this.initPlayer(this.blackPlayer);
@@ -86,7 +94,7 @@ export class Chess {
 
   private initPlayer(player: Player) {
     player.pawns.forEach(({ position, id }) => {
-      this.board[SIZE - position.y][position.x - 1] = id;
+      this.setPosition(position, id);
     });
   }
 }
