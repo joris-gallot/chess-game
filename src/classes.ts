@@ -80,11 +80,21 @@ export class Chess {
   }
 
   public getPosition(position: BoardPosition) {
+    this.validatePosition(position);
     return this.board[SIZE - position.y][position.x - 1];
   }
 
   public setPosition(position: BoardPosition, value: SquareSymbol) {
+    this.validatePosition(position);
     return (this.board[SIZE - position.y][position.x - 1] = value);
+  }
+
+  private validatePosition({ x, y }: BoardPosition) {
+    if (x > SIZE || x <= 0 || y > SIZE || y <= 0) {
+      throw new Error(`wrong position x:${x} y:${y}`);
+    }
+
+    return true;
   }
 
   private initBoard() {
