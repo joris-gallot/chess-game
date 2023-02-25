@@ -8,7 +8,7 @@ export type BoardPosition = {
 };
 
 export const SquareSymbol = {
-  EMPTY: "E",
+  EMPTY: " ",
   PAWN: "P",
   QUEEN: "Q",
   ROOK: "R",
