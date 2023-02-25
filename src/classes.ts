@@ -68,9 +68,9 @@ class Player {
 }
 
 export class Chess {
-  public board = new Array<string>(SIZE)
+  public board = new Array<SquareSymbol>(SIZE)
     .fill(SquareSymbol.EMPTY)
-    .map(() => new Array<string>(SIZE).fill(SquareSymbol.EMPTY));
+    .map(() => new Array<SquareSymbol>(SIZE).fill(SquareSymbol.EMPTY));
 
   private whitePlayer = new Player(true);
   private blackPlayer = new Player();
