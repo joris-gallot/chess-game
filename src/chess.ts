@@ -1,5 +1,5 @@
 import { Chess } from "./classes";
-import { SIZE } from "./types";
+import { BoardPosition, BoardSquare, SIZE } from "./types";
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
@@ -11,34 +11,20 @@ export function setupChess(element: HTMLDivElement) {
 
   setupXRow(boardEl);
 
-  chess.board.forEach((pawns, i) => {
+  chess.board.forEach((boardSquares, i) => {
     const rowEl = document.createElement("div");
     rowEl.id = `row-${i + 1}`;
     rowEl.classList.add("flex");
 
-    pawns.forEach((pawn, j) => {
+    boardSquares.forEach((boardSquare, j) => {
       // add square for current y value
       if (j === 0) {
         setupYSquare(rowEl, i);
       }
 
-      const squareEl = document.createElement("div");
-      squareEl.id = `square-${j + 1}`;
-      squareEl.classList.add(
-        "flex",
-        "items-center",
-        "justify-center",
-        "w-12",
-        "h-12",
-        "bg-gray-700",
-        "border",
-        "border-gray-600",
-        "text-gray-200",
-        "font-bold",
-        "hover:bg-gray-500",
-        "select-none"
-      );
-      squareEl.textContent = pawn;
+      const position: BoardPosition = { x: j + 1, y: SIZE - i };
+      const squareEl = setupBoardSquare(boardSquare, position);
+
       rowEl.append(squareEl);
     });
 
@@ -46,6 +32,44 @@ export function setupChess(element: HTMLDivElement) {
   });
 
   element.append(boardEl);
+}
+
+function onClickSquare(square: BoardSquare) {
+  return () => {
+    console.log("square", square);
+  };
+}
+
+function setupBoardSquare(square: BoardSquare, { x, y }: BoardPosition) {
+  const squareEl = document.createElement("div");
+  squareEl.id = `${letters[x - 1]}-${y}`;
+
+  squareEl.addEventListener("click", onClickSquare(square));
+  const { pawn } = square;
+
+  if (pawn) {
+    squareEl.classList.add(
+      pawn.belongsToWhitePlayer ? "text-gray-200" : "text-yellow-400"
+    );
+  }
+
+  squareEl.classList.add(
+    "flex",
+    "items-center",
+    "justify-center",
+    "w-12",
+    "h-12",
+    "bg-gray-700",
+    "border",
+    "border-gray-600",
+    "text-gray-200",
+    "font-bold",
+    "hover:bg-gray-500",
+    "select-none"
+  );
+  squareEl.textContent = square.symbol;
+
+  return squareEl;
 }
 
 function setupYSquare(rowEl: HTMLDivElement, index: number) {

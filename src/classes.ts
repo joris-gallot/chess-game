@@ -1,6 +1,12 @@
-import { BasePawn, SquareSymbol, BoardPosition, SIZE } from "./types";
+import {
+  BasePawn,
+  BoardPosition,
+  BoardSquare,
+  SIZE,
+  SquareSymbol,
+} from "./types";
 
-class Pawn implements BasePawn {
+export class Pawn implements BasePawn {
   id: SquareSymbol = SquareSymbol.PAWN;
   availablePositions = () => [];
 
@@ -39,7 +45,7 @@ class Player {
     this.initPawns(isFirst);
   }
 
-  private initPawns(isFirst = false) {
+  private initPawns(isFirst = false): void {
     const yDelta = SIZE + 1;
 
     // 8 pawns
@@ -68,9 +74,11 @@ class Player {
 }
 
 export class Chess {
-  public board = new Array<SquareSymbol>(SIZE)
-    .fill(SquareSymbol.EMPTY)
-    .map(() => new Array<SquareSymbol>(SIZE).fill(SquareSymbol.EMPTY));
+  public board = new Array<BoardSquare>(SIZE)
+    .fill({ symbol: SquareSymbol.EMPTY })
+    .map(() =>
+      new Array<BoardSquare>(SIZE).fill({ symbol: SquareSymbol.EMPTY })
+    );
 
   private whitePlayer = new Player(true);
   private blackPlayer = new Player();
@@ -79,17 +87,17 @@ export class Chess {
     this.initBoard();
   }
 
-  public getPosition(position: BoardPosition) {
+  public getPosition(position: BoardPosition): BoardSquare {
     this.validatePosition(position);
     return this.board[SIZE - position.y][position.x - 1];
   }
 
-  public setPosition(position: BoardPosition, value: SquareSymbol) {
+  public setPosition(position: BoardPosition, value: BoardSquare): void {
     this.validatePosition(position);
-    return (this.board[SIZE - position.y][position.x - 1] = value);
+    this.board[SIZE - position.y][position.x - 1] = value;
   }
 
-  private validatePosition({ x, y }: BoardPosition) {
+  private validatePosition({ x, y }: BoardPosition): boolean {
     if (x > SIZE || x <= 0 || y > SIZE || y <= 0) {
       throw new Error(`wrong position x:${x} y:${y}`);
     }
@@ -97,14 +105,17 @@ export class Chess {
     return true;
   }
 
-  private initBoard() {
-    this.initPlayer(this.whitePlayer);
+  private initBoard(): void {
+    this.initPlayer(this.whitePlayer, true);
     this.initPlayer(this.blackPlayer);
   }
 
-  private initPlayer(player: Player) {
-    player.pawns.forEach(({ position, id }) => {
-      this.setPosition(position, id);
+  private initPlayer(player: Player, whitePlayer = false): void {
+    player.pawns.forEach((pawn) => {
+      this.setPosition(pawn.position, {
+        symbol: pawn.id,
+        pawn: { ...pawn, belongsToWhitePlayer: whitePlayer },
+      });
     });
   }
 }
