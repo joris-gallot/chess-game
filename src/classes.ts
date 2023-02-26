@@ -7,35 +7,35 @@ import {
 } from "./types";
 
 export class Pawn implements BasePawn {
-  id: SquareSymbol = SquareSymbol.PAWN;
-  availablePositions = () => [];
+  public id: SquareSymbol = SquareSymbol.PAWN;
+  public availablePositions = () => [];
 
   constructor(public position: BoardPosition) {}
 }
 
 class King extends Pawn {
-  id = SquareSymbol.KING;
-  availablePositions = () => [];
+  public id = SquareSymbol.KING;
+  public availablePositions = () => [];
 }
 
 class Queen extends Pawn {
-  id = SquareSymbol.QUEEN;
-  availablePositions = () => [];
+  public id = SquareSymbol.QUEEN;
+  public availablePositions = () => [];
 }
 
 class Rook extends Pawn {
-  id = SquareSymbol.ROOK;
-  availablePositions = () => [];
+  public id = SquareSymbol.ROOK;
+  public availablePositions = () => [];
 }
 
 class Bishop extends Pawn {
-  id = SquareSymbol.BISHOP;
-  availablePositions = () => [];
+  public id = SquareSymbol.BISHOP;
+  public availablePositions = () => [];
 }
 
 class Knight extends Pawn {
-  id = SquareSymbol.KNIGHT;
-  availablePositions = () => [];
+  public id = SquareSymbol.KNIGHT;
+  public availablePositions = () => [];
 }
 
 class Player {
@@ -48,28 +48,31 @@ class Player {
   private initPawns(isFirst = false): void {
     const yDelta = SIZE + 1;
 
+    const calculateY = (isFirst: boolean, value: number) =>
+      isFirst ? value : yDelta - value;
+
     // 8 pawns
     for (let i = 0; i < SIZE; i++) {
-      this.pawns.push(new Pawn({ x: i + 1, y: isFirst ? 2 : yDelta - 2 }));
+      this.pawns.push(new Pawn({ x: i + 1, y: calculateY(isFirst, 2) }));
     }
 
     // 2 rooks
-    this.pawns.push(new Rook({ x: 1, y: isFirst ? 1 : yDelta - 1 }));
-    this.pawns.push(new Rook({ x: 8, y: isFirst ? 1 : yDelta - 1 }));
+    this.pawns.push(new Rook({ x: 1, y: calculateY(isFirst, 1) }));
+    this.pawns.push(new Rook({ x: 8, y: calculateY(isFirst, 1) }));
 
     // 2 knights
-    this.pawns.push(new Knight({ x: 2, y: isFirst ? 1 : yDelta - 1 }));
-    this.pawns.push(new Knight({ x: 7, y: isFirst ? 1 : yDelta - 1 }));
+    this.pawns.push(new Knight({ x: 2, y: calculateY(isFirst, 1) }));
+    this.pawns.push(new Knight({ x: 7, y: calculateY(isFirst, 1) }));
 
     // 2 bishops
-    this.pawns.push(new Bishop({ x: 3, y: isFirst ? 1 : yDelta - 1 }));
-    this.pawns.push(new Bishop({ x: 6, y: isFirst ? 1 : yDelta - 1 }));
+    this.pawns.push(new Bishop({ x: 3, y: calculateY(isFirst, 1) }));
+    this.pawns.push(new Bishop({ x: 6, y: calculateY(isFirst, 1) }));
 
     // 1 queen
-    this.pawns.push(new Queen({ x: 4, y: isFirst ? 1 : yDelta - 1 }));
+    this.pawns.push(new Queen({ x: 4, y: calculateY(isFirst, 1) }));
 
     // 1 king
-    this.pawns.push(new King({ x: 5, y: isFirst ? 1 : yDelta - 1 }));
+    this.pawns.push(new King({ x: 5, y: calculateY(isFirst, 1) }));
   }
 }
 

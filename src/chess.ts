@@ -35,16 +35,14 @@ export function setupChess(element: HTMLDivElement) {
 }
 
 function onClickSquare(square: BoardSquare) {
-  return () => {
-    console.log("square", square);
-  };
+  console.log("square", square);
 }
 
 function setupBoardSquare(square: BoardSquare, { x, y }: BoardPosition) {
   const squareEl = document.createElement("div");
   squareEl.id = `${letters[x - 1]}-${y}`;
 
-  squareEl.addEventListener("click", onClickSquare(square));
+  squareEl.addEventListener("click", () => onClickSquare(square));
   const { pawn } = square;
 
   if (pawn) {
