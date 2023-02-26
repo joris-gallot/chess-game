@@ -1,10 +1,25 @@
 import { Chess } from "./classes";
-import { BoardPosition, BoardSquare, SIZE } from "./types";
+import { BoardPosition, BoardSquare, isDivElement, SIZE } from "./types";
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const activeSquareClasses = ["bg-blue-400"];
+const squareClasses = [
+  "flex",
+  "items-center",
+  "justify-center",
+  "w-12",
+  "h-12",
+  "bg-gray-700",
+  "border",
+  "border-gray-600",
+  "text-gray-200",
+  "font-bold",
+  "hover:bg-gray-500",
+  "select-none",
+];
 
 export function setupChess(element: HTMLDivElement): void {
-  const chess = new Chess();
+  window.chess = new Chess(element);
 
   const boardEl = document.createElement("div");
   boardEl.classList.add("flex", "flex-col", "items-center", "justify-center");
@@ -12,7 +27,7 @@ export function setupChess(element: HTMLDivElement): void {
   const xRowEl = setupXRow();
   boardEl.append(xRowEl);
 
-  chess.board.forEach((boardSquares, i) => {
+  window.chess.board.forEach((boardSquares, i) => {
     const rowEl = document.createElement("div");
     rowEl.id = `row-${i + 1}`;
     rowEl.classList.add("flex");
@@ -33,11 +48,35 @@ export function setupChess(element: HTMLDivElement): void {
     boardEl.append(rowEl);
   });
 
+  window.addEventListener("click", ({ target }: MouseEvent) => {
+    // reset style only if element clicked is not a board square
+    if (target && isDivElement(target) && !target.dataset.isBoardSquare) {
+      resetStyleAllSquares();
+    }
+  });
+
   element.append(boardEl);
 }
 
-function onClickSquare(square: BoardSquare): void {
-  console.log("square", square);
+function onClickSquare({ pawn }: BoardSquare, element: HTMLDivElement): void {
+  if (pawn) {
+    selectSquare(element);
+    // const { availablePositions } = square.pawn;
+    // console.log("availablePositions", pawn.availablePositions());
+  }
+}
+
+function resetStyleAllSquares() {
+  window.chess.getAllSquaresElement().forEach((element) => {
+    element.classList.remove(...activeSquareClasses);
+    element.classList.add(...squareClasses);
+  });
+}
+
+function selectSquare(element: HTMLDivElement) {
+  resetStyleAllSquares();
+  element.classList.add(...activeSquareClasses);
+  element.classList.remove("hover:bg-gray-500");
 }
 
 function setupBoardSquare(
@@ -46,8 +85,11 @@ function setupBoardSquare(
 ): HTMLDivElement {
   const squareEl = document.createElement("div");
   squareEl.id = `${letters[x - 1]}-${y}`;
+  squareEl.dataset.isBoardSquare = true.toString();
 
-  squareEl.addEventListener("click", () => onClickSquare(square));
+  squareEl.addEventListener("click", ({ target }: MouseEvent) =>
+    onClickSquare(square, target as HTMLDivElement)
+  );
   const { pawn } = square;
 
   if (pawn) {
@@ -56,20 +98,7 @@ function setupBoardSquare(
     );
   }
 
-  squareEl.classList.add(
-    "flex",
-    "items-center",
-    "justify-center",
-    "w-12",
-    "h-12",
-    "bg-gray-700",
-    "border",
-    "border-gray-600",
-    "text-gray-200",
-    "font-bold",
-    "hover:bg-gray-500",
-    "select-none"
-  );
+  squareEl.classList.add(...squareClasses);
   squareEl.textContent = square.symbol;
 
   return squareEl;

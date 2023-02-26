@@ -1,5 +1,17 @@
 import { ValueOf } from "type-fest";
-import { Pawn } from "./classes";
+import { Chess, Pawn } from "./classes";
+
+declare global {
+  interface Window {
+    chess: Chess;
+  }
+}
+
+export function isDivElement(
+  element: Element | EventTarget | HTMLDivElement
+): element is HTMLDivElement {
+  return (element as HTMLDivElement).tagName === "DIV";
+}
 
 export const SIZE = 8;
 
