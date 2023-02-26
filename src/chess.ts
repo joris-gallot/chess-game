@@ -3,13 +3,14 @@ import { BoardPosition, BoardSquare, SIZE } from "./types";
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-export function setupChess(element: HTMLDivElement) {
+export function setupChess(element: HTMLDivElement): void {
   const chess = new Chess();
 
   const boardEl = document.createElement("div");
   boardEl.classList.add("flex", "flex-col", "items-center", "justify-center");
 
-  setupXRow(boardEl);
+  const xRowEl = setupXRow();
+  boardEl.append(xRowEl);
 
   chess.board.forEach((boardSquares, i) => {
     const rowEl = document.createElement("div");
@@ -17,9 +18,10 @@ export function setupChess(element: HTMLDivElement) {
     rowEl.classList.add("flex");
 
     boardSquares.forEach((boardSquare, j) => {
-      // add square for current y value
+      // add square only at first for current y value
       if (j === 0) {
-        setupYSquare(rowEl, i);
+        const ySquareEL = setupYSquare(i);
+        rowEl.append(ySquareEL);
       }
 
       const position: BoardPosition = { x: j + 1, y: SIZE - i };
@@ -34,11 +36,14 @@ export function setupChess(element: HTMLDivElement) {
   element.append(boardEl);
 }
 
-function onClickSquare(square: BoardSquare) {
+function onClickSquare(square: BoardSquare): void {
   console.log("square", square);
 }
 
-function setupBoardSquare(square: BoardSquare, { x, y }: BoardPosition) {
+function setupBoardSquare(
+  square: BoardSquare,
+  { x, y }: BoardPosition
+): HTMLDivElement {
   const squareEl = document.createElement("div");
   squareEl.id = `${letters[x - 1]}-${y}`;
 
@@ -70,7 +75,7 @@ function setupBoardSquare(square: BoardSquare, { x, y }: BoardPosition) {
   return squareEl;
 }
 
-function setupYSquare(rowEl: HTMLDivElement, index: number) {
+function setupYSquare(index: number): HTMLDivElement {
   const squareYEl = document.createElement("div");
 
   squareYEl.id = `x-${index + 1}`;
@@ -86,15 +91,16 @@ function setupYSquare(rowEl: HTMLDivElement, index: number) {
   );
   squareYEl.textContent = index >= 0 ? (SIZE - index).toString() : "";
 
-  rowEl.append(squareYEl);
+  return squareYEl;
 }
 
-function setupXRow(boardEl: HTMLDivElement, size = SIZE) {
+function setupXRow(size = SIZE): HTMLDivElement {
   const rowXEl = document.createElement("div");
   rowXEl.id = "row-0";
   rowXEl.classList.add("flex");
 
-  setupYSquare(rowXEl, -1);
+  const ySquareEl = setupYSquare(-1);
+  rowXEl.append(ySquareEl);
 
   for (let i = 0; i < size; i++) {
     const squareEl = document.createElement("div");
@@ -113,5 +119,5 @@ function setupXRow(boardEl: HTMLDivElement, size = SIZE) {
     rowXEl.append(squareEl);
   }
 
-  boardEl.append(rowXEl);
+  return rowXEl;
 }
