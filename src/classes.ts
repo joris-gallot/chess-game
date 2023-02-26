@@ -46,10 +46,10 @@ class Player {
   }
 
   private initPawns(isFirst = false): void {
-    const yDelta = SIZE + 1;
-
-    const calculateY = (isFirst: boolean, value: number) =>
-      isFirst ? value : yDelta - value;
+    const calculateY = (isFirst: boolean, value: number) => {
+      const yDelta = SIZE + 1;
+      return isFirst ? value : yDelta - value;
+    };
 
     // 8 pawns
     for (let i = 0; i < SIZE; i++) {
