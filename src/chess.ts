@@ -2,20 +2,27 @@ import { Chess } from "./classes";
 import { BoardPosition, BoardSquare, isDivElement, SIZE } from "./types";
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const activeSquareClasses = ["bg-blue-400"];
-const squareClasses = [
+
+const baseSquareClasses = (isWhite = true) => [
+  isWhite ? "text-gray-200" : "text-yellow-400",
   "flex",
   "items-center",
   "justify-center",
   "w-12",
   "h-12",
-  "bg-gray-700",
   "border",
   "border-gray-600",
-  "text-gray-200",
   "font-bold",
-  "hover:bg-gray-500",
   "select-none",
+];
+const activeSquareClasses = (isWhite = true) => [
+  ...baseSquareClasses(isWhite),
+  "bg-blue-400",
+];
+const squareClasses = (isWhite = true) => [
+  ...baseSquareClasses(isWhite),
+  "bg-gray-700",
+  "hover:bg-gray-500",
 ];
 
 export function setupChess(element: HTMLDivElement): void {
@@ -51,7 +58,7 @@ export function setupChess(element: HTMLDivElement): void {
   window.addEventListener("click", ({ target }: MouseEvent) => {
     // reset style only if element clicked is not a board square
     if (target && isDivElement(target) && !target.dataset.isBoardSquare) {
-      resetStyleAllSquares();
+      resetAllSquaresStyle();
     }
   });
 
@@ -66,17 +73,30 @@ function onClickSquare({ pawn }: BoardSquare, element: HTMLDivElement): void {
   }
 }
 
-function resetStyleAllSquares() {
-  window.chess.getAllSquaresElement().forEach((element) => {
-    element.classList.remove(...activeSquareClasses);
-    element.classList.add(...squareClasses);
+function setClass(element: HTMLElement, classes: string[]): void {
+  element.classList.remove(...Array.from(element.classList));
+  element.classList.add(...classes);
+}
+
+function getBoardSquare(element: HTMLElement): BoardSquare {
+  const { x, y } = element.dataset;
+  return window.chess.getPosition({
+    x: parseInt(x || "-1"),
+    y: parseInt(y || "-1"),
   });
 }
 
-function selectSquare(element: HTMLDivElement) {
-  resetStyleAllSquares();
-  element.classList.add(...activeSquareClasses);
-  element.classList.remove("hover:bg-gray-500");
+function resetAllSquaresStyle(): void {
+  window.chess.getAllSquaresElement().forEach((element) => {
+    const { pawn } = getBoardSquare(element);
+    setClass(element, squareClasses(pawn?.belongsToWhitePlayer));
+  });
+}
+
+function selectSquare(element: HTMLDivElement): void {
+  const { pawn } = getBoardSquare(element);
+  resetAllSquaresStyle();
+  setClass(element, activeSquareClasses(pawn?.belongsToWhitePlayer));
 }
 
 function setupBoardSquare(
@@ -86,19 +106,15 @@ function setupBoardSquare(
   const squareEl = document.createElement("div");
   squareEl.id = `${letters[x - 1]}-${y}`;
   squareEl.dataset.isBoardSquare = true.toString();
+  squareEl.dataset.x = x.toString();
+  squareEl.dataset.y = y.toString();
 
   squareEl.addEventListener("click", ({ target }: MouseEvent) =>
     onClickSquare(square, target as HTMLDivElement)
   );
   const { pawn } = square;
 
-  if (pawn) {
-    squareEl.classList.add(
-      pawn.belongsToWhitePlayer ? "text-gray-200" : "text-yellow-400"
-    );
-  }
-
-  squareEl.classList.add(...squareClasses);
+  squareEl.classList.add(...squareClasses(pawn?.belongsToWhitePlayer));
   squareEl.textContent = square.symbol;
 
   return squareEl;
