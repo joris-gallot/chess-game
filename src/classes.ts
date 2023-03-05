@@ -6,10 +6,18 @@ import {
   SquareSymbol,
 } from "./types";
 
-const calculateY = (isFirst: boolean, value: number) => {
+function reverteY(isFirst: boolean, value: number) {
   const yDelta = SIZE + 1;
   return isFirst ? value : yDelta - value;
-};
+}
+
+function validatePosition({ x, y }: BoardPosition): boolean {
+  if (x > SIZE || x <= 0 || y > SIZE || y <= 0) {
+    throw new Error(`wrong position x:${x} y:${y}`);
+  }
+
+  return true;
+}
 
 export class Pawn implements BasePawn {
   public id: SquareSymbol = SquareSymbol.PAWN;
@@ -19,15 +27,25 @@ export class Pawn implements BasePawn {
     public belongsToWhitePlayer: boolean
   ) {}
 
-  public availablePositions() {
-    console.log("current position");
-
+  public availablePositions(): BoardPosition[] {
     return [
       {
         x: this.position.x,
-        y: calculateY(this.belongsToWhitePlayer, this.position.y + 1),
+        y: this.calcY(1),
       },
     ];
+  }
+
+  private calcY(value: number) {
+    const calcYWhite =
+      reverteY(this.belongsToWhitePlayer, this.position.y) + value;
+
+    const calcYBlack = reverteY(
+      this.belongsToWhitePlayer,
+      reverteY(this.belongsToWhitePlayer, this.position.y) + value
+    );
+
+    return this.belongsToWhitePlayer ? calcYWhite : calcYBlack;
   }
 }
 
@@ -72,61 +90,66 @@ class Knight extends Pawn {
 }
 
 class Player {
-  pawns: Pawn[] = new Array(SIZE * 2);
+  pawns: Pawn[] = [];
 
   constructor(isFirst = false) {
     this.initPawns(isFirst);
   }
 
+  // TODO:
+  public move(pawn: Pawn, position: BoardPosition) {
+    validatePosition(position);
+    pawn.position = position;
+  }
+
   private initPawns(isFirst = false): void {
     // 8 pawns
     for (let i = 0; i < SIZE; i++) {
-      this.pawns.push(
-        new Pawn({ x: i + 1, y: calculateY(isFirst, 2) }, isFirst)
-      );
+      this.pawns.push(new Pawn({ x: i + 1, y: reverteY(isFirst, 2) }, isFirst));
     }
 
     // 2 rooks
-    this.pawns.push(new Rook({ x: 1, y: calculateY(isFirst, 1) }, isFirst));
-    this.pawns.push(new Rook({ x: 8, y: calculateY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Rook({ x: 1, y: reverteY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Rook({ x: 8, y: reverteY(isFirst, 1) }, isFirst));
 
     // 2 knights
-    this.pawns.push(new Knight({ x: 2, y: calculateY(isFirst, 1) }, isFirst));
-    this.pawns.push(new Knight({ x: 7, y: calculateY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Knight({ x: 2, y: reverteY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Knight({ x: 7, y: reverteY(isFirst, 1) }, isFirst));
 
     // 2 bishops
-    this.pawns.push(new Bishop({ x: 3, y: calculateY(isFirst, 1) }, isFirst));
-    this.pawns.push(new Bishop({ x: 6, y: calculateY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Bishop({ x: 3, y: reverteY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Bishop({ x: 6, y: reverteY(isFirst, 1) }, isFirst));
 
     // 1 queen
-    this.pawns.push(new Queen({ x: 4, y: calculateY(isFirst, 1) }, isFirst));
+    this.pawns.push(new Queen({ x: 4, y: reverteY(isFirst, 1) }, isFirst));
 
     // 1 king
-    this.pawns.push(new King({ x: 5, y: calculateY(isFirst, 1) }, isFirst));
+    this.pawns.push(new King({ x: 5, y: reverteY(isFirst, 1) }, isFirst));
   }
 }
 
 export class Chess {
-  public board = new Array<BoardSquare>(SIZE)
-    .fill({ symbol: SquareSymbol.EMPTY })
-    .map(() =>
-      new Array<BoardSquare>(SIZE).fill({ symbol: SquareSymbol.EMPTY })
-    );
+  public board: BoardSquare[][] = [];
+  public isWhitePlaying = true;
 
   private whitePlayer = new Player(true);
   private blackPlayer = new Player();
 
+  get currentPlayer() {
+    return this.isWhitePlaying ? this.whitePlayer : this.blackPlayer;
+  }
+
   constructor(private htmlElement: HTMLDivElement) {
-    this.initBoard();
+    this.syncBoard();
   }
 
   public getPosition(position: BoardPosition): BoardSquare {
-    this.validatePosition(position);
+    validatePosition(position);
     return this.board[SIZE - position.y][position.x - 1];
   }
 
   public setPosition(position: BoardPosition, value: BoardSquare): void {
-    this.validatePosition(position);
+    validatePosition(position);
     this.board[SIZE - position.y][position.x - 1] = value;
   }
 
@@ -145,20 +168,21 @@ export class Chess {
     return rows.flat() as HTMLDivElement[];
   }
 
-  private validatePosition({ x, y }: BoardPosition): boolean {
-    if (x > SIZE || x <= 0 || y > SIZE || y <= 0) {
-      throw new Error(`wrong position x:${x} y:${y}`);
-    }
-
-    return true;
+  public syncBoard(): void {
+    this.resetBoard();
+    this.syncPlayer(this.whitePlayer);
+    this.syncPlayer(this.blackPlayer);
   }
 
-  private initBoard(): void {
-    this.initPlayer(this.whitePlayer);
-    this.initPlayer(this.blackPlayer);
+  private resetBoard() {
+    this.board = new Array<BoardSquare>(SIZE)
+      .fill({ symbol: SquareSymbol.EMPTY })
+      .map(() =>
+        new Array<BoardSquare>(SIZE).fill({ symbol: SquareSymbol.EMPTY })
+      );
   }
 
-  private initPlayer(player: Player): void {
+  private syncPlayer(player: Player): void {
     player.pawns.forEach((pawn) => {
       this.setPosition(pawn.position, {
         symbol: pawn.id,

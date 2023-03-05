@@ -1,4 +1,4 @@
-import { Chess } from "./classes";
+import { Chess, Pawn } from "./classes";
 import { BoardPosition, BoardSquare, isDivElement, SIZE } from "./types";
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -19,6 +19,12 @@ const activeSquareClasses = (isWhite = true) => [
   ...baseSquareClasses(isWhite),
   "bg-blue-400",
 ];
+
+const optionSquareClasses = (isWhite = true) => [
+  ...baseSquareClasses(isWhite),
+  "bg-blue-200",
+];
+
 const squareClasses = (isWhite = true) => [
   ...baseSquareClasses(isWhite),
   "bg-gray-700",
@@ -66,10 +72,10 @@ export function setupChess(element: HTMLDivElement): void {
 }
 
 function onClickSquare({ pawn }: BoardSquare, element: HTMLDivElement): void {
-  if (pawn) {
-    selectSquare(element);
-    // const { availablePositions } = square.pawn;
-    // console.log("availablePositions", pawn.availablePositions());
+  const canSelect = true; // TODO: right user to play
+
+  if (pawn && canSelect) {
+    selectSquare(pawn, element);
   }
 }
 
@@ -78,12 +84,24 @@ function setClass(element: HTMLElement, classes: string[]): void {
   element.classList.add(...classes);
 }
 
-function getBoardSquare(element: HTMLElement): BoardSquare {
+function getPosition(element: HTMLElement): BoardPosition {
   const { x, y } = element.dataset;
-  return window.chess.getPosition({
+  return {
     x: parseInt(x || "-1"),
     y: parseInt(y || "-1"),
-  });
+  };
+}
+
+function getBoardSquare(element: HTMLElement): BoardSquare {
+  const position = getPosition(element);
+  return window.chess.getPosition(position);
+}
+
+function getElementFromBoardPosition({
+  x,
+  y,
+}: BoardPosition): HTMLElement | null {
+  return document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
 }
 
 function resetAllSquaresStyle(): void {
@@ -93,10 +111,33 @@ function resetAllSquaresStyle(): void {
   });
 }
 
-function selectSquare(element: HTMLDivElement): void {
-  const { pawn } = getBoardSquare(element);
-  resetAllSquaresStyle();
+function selectSquare(pawn: Pawn, element: HTMLDivElement): void {
+  resetAllSquaresStyle(); // TODO: reset only the current select square
   setClass(element, activeSquareClasses(pawn?.belongsToWhitePlayer));
+
+  pawn.availablePositions().forEach((boardSquare) => {
+    const el = getElementFromBoardPosition(boardSquare);
+
+    if (el) {
+      setClass(el, optionSquareClasses(pawn.belongsToWhitePlayer));
+
+      el.addEventListener("click", ({ target }) => {
+        if (target && isDivElement(target)) {
+          const newPosition = getPosition(target);
+          const oldPosition = pawn.position;
+
+          window.chess.currentPlayer.move(pawn, newPosition);
+          window.chess.syncBoard();
+
+          const square = window.chess.getPosition(newPosition);
+          target.textContent = square.symbol;
+
+          const oldsquare = window.chess.getPosition(oldPosition);
+          element.textContent = oldsquare.symbol;
+        }
+      });
+    }
+  });
 }
 
 function setupBoardSquare(
